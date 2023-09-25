@@ -1,49 +1,55 @@
 ﻿const uri = "https://cityinfo.buchwaldshave34.dk/api/City";
 const uriCountry = "https://cityinfo.buchwaldshave34.dk/api/Country";
-const uriLang ="https://cityinfo.buchwaldshave34.dk/api/Language";
+const uriLang = "https://cityinfo.buchwaldshave34.dk/api/Language";
 let todos = [];
 let ThisUserName = "UserJacobA";
 
 function getItems() {
-   fetch(uri + "?UserName=" + ThisUserName)
+    setTimeout(function () {
+        fetch(uri + "?UserName=" + ThisUserName)
+            .then(response => response.json())
+            .then(data => _displayItems(data))
+            .catch(error => console.error('Unable to get items.', error));
+    }, 100);
+}
+
+function setUpSelectCountryBox(sBox) {
+    fetch(uriCountry + "?UserName=" + ThisUserName,)
         .then(response => response.json())
-        .then(data => _displayItems(data))
-        .catch(error => console.error('Unable to get items.', error));
+        .then(item => {
+            item.forEach(i => {
+                var option = document.createElement('option');
+                option.text = i.countryID + ") " + i.countryName;
+                sBox.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Unable to add item.', error));
 }
 
-function getCountries(){
+function getCountries() {
     const newCountrySelect = document.getElementById('newCountrySelect');
-    fetch(uriCountry + "?UserName=" + ThisUserName, )
-    .then(response => response.json())
-    .then(item => {
-        item.forEach(i => {
-            var option = document.createElement('option');
-            option.text = i.countryID+") "+i.countryName;
-            newCountrySelect.appendChild(option);
-        });
-    })
-    .catch(error => console.error('Unable to add item.', error));
+    setUpSelectCountryBox(newCountrySelect);
 }
 
-function getLanguages(){
+function getLanguages() {
     const languageSelect = document.getElementById('languageSelectionArea');
-    fetch(uriLang + "?UserName=" + ThisUserName, )
-    .then(response => response.json())
-    .then(item => {
-        item.forEach(i => {
-            var option = document.createElement('input');
-            var optionLabel = document.createElement('label');
-            option.id = i.languageId;
-            option.type = 'checkbox';
-            optionLabel.setAttribute('for', i.languageId);
-            optionLabel.innerHTML = i.languageName;
-            option.value = "asd";
-            //console.log(optionLabel);
-            languageSelect.appendChild(option);
-            languageSelect.appendChild(optionLabel);
-        });
-    })
-    .catch(error => console.error('Unable to add item.', error));
+    fetch(uriLang + "?UserName=" + ThisUserName,)
+        .then(response => response.json())
+        .then(item => {
+            item.forEach(i => {
+                var option = document.createElement('input');
+                var optionLabel = document.createElement('label');
+                option.id = i.languageId;
+                option.type = 'checkbox';
+                optionLabel.setAttribute('for', i.languageId);
+                optionLabel.innerHTML = i.languageName;
+                option.value = "asd";
+                //console.log(optionLabel);
+                languageSelect.appendChild(option);
+                languageSelect.appendChild(optionLabel);
+            });
+        })
+        .catch(error => console.error('Unable to add item.', error));
 }
 
 function addItem() {
@@ -52,11 +58,24 @@ function addItem() {
     const addCountrySelectBox = document.getElementById('newCountrySelect');
     const splitCountrySelected = addCountrySelectBox.value;
 
+    let languageSelect = document.getElementById('languageSelectionArea');
+    const l = document.querySelectorAll('#languageSelectionArea input[type=checkbox]');
+    let lang;
+
+    for (var i = 0; i < l.length; i++) {
+        if (l[i].checked) {
+            lang = l[i].id;
+            console.log(lang);
+            break;
+        }
+    }
+
     const item = {
         isComplete: false,
         name: addNameTextbox.value.trim(),
         countryID: splitCountrySelected.split(')')[0],
         description: descriptionArea.value,
+        
     };
 
     console.log(item);
@@ -87,18 +106,27 @@ function deleteItem(id) {
 
 function displayEditForm(id) {
     const item = todos.find(item => item.cityId === id);
+    const sBox = document.getElementById('UpdateCountrySelect');
 
     document.getElementById('edit-name').value = item.name;
     document.getElementById('edit-id').value = item.cityId;
     document.getElementById('edit-isComplete').checked = item.isComplete;
+    document.getElementById('descriptionAreaUpdate').value = item.description;
+    setUpSelectCountryBox(sBox);
+    console.log(item.cityId);
+
+
     document.getElementById('editForm').style.display = 'block';
+
 }
 function updateItem() {
     const itemId = document.getElementById('edit-id').value;
+    const itemCountryId = document.getElementById('UpdateCountrySelect').value.split(')')[0];
     const item = {
-        id: parseInt(itemId, 10),
-        isComplete: document.getElementById('edit-isComplete').checked,
-        name: document.getElementById('edit-name').value.trim()
+        cityId: itemId,
+        name: document.getElementById('edit-name').value.trim(),
+        description: document.getElementById('descriptionAreaUpdate').value,
+        countryID: parseInt(itemCountryId, 10)
     };
 
     fetch(`${uri}/${itemId}` + "?UserName=" + ThisUserName, {
@@ -109,6 +137,10 @@ function updateItem() {
         },
         body: JSON.stringify(item)
     })
+        .then(() => {
+            const tBody = document.getElementById('cities');
+            tBody.innerHTML = '';
+        })
         .then(() => getItems())
         .catch(error => console.error('Unable to update item.', error));
 
@@ -156,17 +188,22 @@ function _displayItems(data) {
 
         let td2 = tr.insertCell(1);
         let textNode = document.createTextNode(item.name);
-        td2.appendChild(textNode);  
+        td2.appendChild(textNode);
 
         let td3 = tr.insertCell(2);
         let countryNode = document.createTextNode(item.country.countryName);
         td3.appendChild(countryNode);
 
         let td4 = tr.insertCell(3);
-        td4.appendChild(editButton);
+        let languageNode = document.createTextNode(item);
+        //console.log(item);
+        td4.appendChild(languageNode);
 
         let td5 = tr.insertCell(4);
-        td5.appendChild(deleteButton);
+        td5.appendChild(editButton);
+
+        let td6 = tr.insertCell(5);
+        td6.appendChild(deleteButton);
     });
 
     todos = data;
