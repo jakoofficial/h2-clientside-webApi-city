@@ -200,7 +200,7 @@ function _displayItems(data) {
         let td4 = tr.insertCell(3);
         let languages = "";
         item.cityLanguages.forEach(l => {
-            languages += l.languageId + ", "
+            languages += l.languageName + ", "
         });
         let languageNode = document.createTextNode(languages);
         //console.log(item);
