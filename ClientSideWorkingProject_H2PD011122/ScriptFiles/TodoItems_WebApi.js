@@ -60,12 +60,12 @@ function addItem() {
 
     let languageSelect = document.getElementById('languageSelectionArea');
     const l = document.querySelectorAll('#languageSelectionArea input[type=checkbox]');
-    let lang;
+    let langId;
 
     for (var i = 0; i < l.length; i++) {
         if (l[i].checked) {
-            lang = l[i].id;
-            console.log(lang);
+            langId = l[i].id;
+            console.log(l);
             break;
         }
     }
@@ -75,7 +75,10 @@ function addItem() {
         name: addNameTextbox.value.trim(),
         countryID: splitCountrySelected.split(')')[0],
         description: descriptionArea.value,
-        
+        cityLanguages: item1 = {
+            cityId: 0,
+            languageId: langId
+        }
     };
 
     console.log(item);
@@ -195,7 +198,11 @@ function _displayItems(data) {
         td3.appendChild(countryNode);
 
         let td4 = tr.insertCell(3);
-        let languageNode = document.createTextNode(item);
+        let languages = "";
+        item.cityLanguages.forEach(l => {
+            languages += l.languageId + ", "
+        });
+        let languageNode = document.createTextNode(languages);
         //console.log(item);
         td4.appendChild(languageNode);
 
